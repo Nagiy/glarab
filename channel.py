@@ -1,12 +1,56 @@
 # -*- coding: utf-8 -*-
-import urllib, re
+import urllib
 import json
-import os
-import time
 import sys
-import base64
 import traceback
 
+DEVICE = {
+    'serialno': '6e4f187bf050415bb199b23fe00f950a',
+    'macaddress': '58307c8f96cf41c3bb4c66ff19684d76',
+    'authcode': '7Y3PX6SEAC',
+    'apikey': '', #base64.b64decode("OGRhZmFjMzY5Y2I0NDVmYjg5Mzk1NDI4ZTY0YWQ1NmU=")
+    'apipwd': '', #base64.b64decode("OTBjODgzYjFjNDdhNGI5OWFhNWE4MmU2YjMyOTUxYTU=")
+    'auth_url': 'https://api.gliptv.com/auth.aspx' #base64.b64decode('aHR0cHM6Ly9hcGkuZ2xpcHR2LmNvbS9hdXRoLmFzcHg=')
+}
+
+def initDevice(authcode=''):
+
+    data = {"f": "maincheck", "action": "maincheck"}
+    header = [('User-Agent', '')]
+    sessionpage = getUrl(DEVICE['auth_url'], post=data, headers=header)
+    sessionpage = json.loads(sessionpage)["resp"]
+
+    DEVICE['apipwd'] = sessionpage[0]["APIPassword"]
+    DEVICE['apikey'] = sessionpage[0]["APIKey"]
+
+    if authcode != "":
+        try:
+            data = {
+                "gmt": "0",
+                "APIPassword": DEVICE['apipwd'],
+                "APIKey": DEVICE['apikey'],
+                "token": authcode,
+                "appVersion": "4.5",
+                "deviceType": "7",
+                "deviceFirmware": "4.4.4",
+                "deviceModel": "GT-I9300",
+                "action": "useToken",
+                "deviceInfo": "samsung-m0-amlogic-19",
+                "applicationType": "5"
+            }
+            sessionpage = getUrl(DEVICE['auth_url'], post=data, headers=header)
+            sessionpage = json.loads(sessionpage)
+            
+            DEVICE['serialno'] = sessionpage["resp"]["Serial"]
+            DEVICE['macaddress'] = sessionpage["resp"]["MacAddress"]
+            DEVICE['authcode'] = authcode
+
+            sys.stdout.write('SUCCESS to register the code  %s'%authcode)
+        except:
+            sys.stderr.write('FAILED to register the code  %s'%authcode)
+            traceback.print_exc(file=sys.stdout)
+            return False
+    return True
 
 def getUrl(url, post, headers, timeout=20):
 
@@ -30,112 +74,60 @@ def getUrl(url, post, headers, timeout=20):
     response.close()
     return data.decode('utf-8')
 
-
-def getGLArabURL(channelid):
-
-    gl_serialno = "6e4f187bf050415bb199b23fe00f950a"
-    gl_serialid = "6e4f187bf050415bb199b23fe00f950a"
-    gl_macaddress = "58307c8f96cf41c3bb4c66ff19684d76"
-    gl_macid = "58307c8f96cf41c3bb4c66ff19684d76"
-    gl_authcode = "7Y3PX6SEAC"
-    gl_authcodeused = "7Y3PX6SEAC"
-
+def getStreamingURL(channelid):
     url = ""
 
-    #base64.b64decode('aHR0cHM6Ly9hcGkuZ2xpcHR2LmNvbS9hdXRoLmFzcHg=')
-    auth_url = 'https://api.gliptv.com/auth.aspx'
-
     try:
-        #apikey = base64.b64decode("OGRhZmFjMzY5Y2I0NDVmYjg5Mzk1NDI4ZTY0YWQ1NmU=")
-        #apipwd = base64.b64decode("OTBjODgzYjFjNDdhNGI5OWFhNWE4MmU2YjMyOTUxYTU=")
 
-        data = {"f": "maincheck", "action": "maincheck"}
-        header = [('User-Agent', '')]
-        sessionpage = getUrl(auth_url, post=data, headers=header)
-        sessionpage = json.loads(sessionpage)["resp"]
-        apipwd = sessionpage[0]["APIPassword"]
-        apikey = sessionpage[0]["APIKey"]
-
-        if gl_authcode != "" and gl_authcode != gl_authcodeused:
-            try:
-                #d.update(50, 'Trying to register the code  %s'%gl_authcode)
-                data = {
-                    "gmt": "0",
-                    "APIPassword": apipwd,
-                    "APIKey": apikey,
-                    "token": gl_authcode,
-                    "appVersion": "4.5",
-                    "deviceType": "7",
-                    "deviceFirmware": "4.4.4",
-                    "deviceModel": "GT-I9300",
-                    "action": "useToken",
-                    "deviceInfo": "samsung-m0-amlogic-19",
-                    "applicationType": "5"
-                }
-                rethtml = getUrl(auth_url, post=data, headers=header)
-                url = json.loads(rethtml)["resp"]
-                gl_serialid = url["Serial"]
-                gl_macid = url["MacAddress"]
-                gl_authcodeused = gl_authcode
-                #d.update(80, 'SUCCESS to register the code  %s'%gl_authcode)
-            except:
-                #d.update(80, 'FAILED to register the code  %s'%gl_authcode)
-                pass
-        if gl_serialid != "":
-            gl_serialno, gl_macaddress = gl_serialid, gl_macid
-        if gl_serialno == "":
-            #d.update(80, "No Global or personal code available. For GL HD create GL code, follow the forum post.")
-            return
         data = {
             "gmt": "0",
-            "APIPassword": apipwd,
-            "APIKey": apikey,
+            "APIPassword": DEVICE['apipwd'],
+            "APIKey": DEVICE['apikey'],
             "appVersion": "4.5",
             "deviceType": "7",
             "deviceFirmware": "4.4.4",
             "deviceModel": "GT-I9300",
             "action": "checkNewDevice",
-            "serialNumber": gl_serialno,
-            "macAddress": gl_macaddress,
+            "serialNumber": DEVICE['serialno'],
+            "macAddress": DEVICE['macaddress'],
             "deviceInfo": "samsung-m0-amlogic-19",
             "applicationType": "5"
         }
         header = [('User-Agent', '')]
-        sessionpage = getUrl(auth_url, post=data, headers=header)
+        sessionpage = getUrl(DEVICE['auth_url'], post=data, headers=header)
         sessionpage = json.loads(sessionpage)
-        glpw = sessionpage["keys"]["pw"]
-        gltoken = sessionpage["keys"]["token"]
-        gldeviceid = str(sessionpage["devicebox"]["deviceID"])
-        glboxid = str(sessionpage["devicebox"]["BoxID"])
+        
+        pw = sessionpage["keys"]["pw"]
+        token = sessionpage["keys"]["token"]
+        deviceid = str(sessionpage["devicebox"]["deviceID"])
+        boxid = str(sessionpage["devicebox"]["BoxID"])
 
         data = {
             "ContentType_ID": "4",
             "f": "getStreamURL",
             "itemName": channelid + '_HD',
-            "APIPassword": apipwd,
-            "APIKey": apikey,
-            "DeviceID": gldeviceid,
+            "APIPassword": DEVICE['apipwd'],
+            "APIKey": DEVICE['apikey'],
+            "DeviceID": deviceid,
             "DeviceType": "7",
             "streamProtocal": "hls",
-            "BoxID": glboxid,
+            "BoxID": boxid,
             "User_Country": "",
             "appVersion": "4.5",
             "ClusterName": "zixi",
-            "token": gltoken,
+            "token": token,
             "action": "getStreamURL",
             "streamType": "live",
             "content_ID": "301493",
-            "pw": glpw,
+            "pw": pw,
             "DUID": "",
             "User_Province": "",
             "PackageID": "1"
         }
         header = [('User-Agent', '')]
-        sessionpage = getUrl(auth_url, post=data, headers=header)
+        sessionpage = getUrl(DEVICE['auth_url'], post=data, headers=header)
 
         url = json.loads(sessionpage)["resp"]
-        if url.startswith("http"):
-            return url
     except:
         traceback.print_exc(file=sys.stdout)
     return url
