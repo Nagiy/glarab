@@ -18,7 +18,8 @@ def api_channels():
 @app.route('/channels/<channelid>')
 def api_channel(channelid):
     url = channel.getStreamingURL(channelid)
-    return redirect(url, code=302)
+    return url
+    #return redirect(url, code=302)
 
 def setup_app(app):
    # All your initialization code
