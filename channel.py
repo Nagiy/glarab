@@ -49,8 +49,8 @@ def initDevice(authcode=''):
         except:
             sys.stderr.write('FAILED to register the code  %s'%authcode)
             traceback.print_exc(file=sys.stdout)
-            return False
-    return True
+            return 'False'
+    return json.dumps(DEVICE)
 
 def getUrl(url, post, headers, timeout=20):
 
