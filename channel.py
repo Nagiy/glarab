@@ -5,9 +5,9 @@ import sys
 import traceback
 
 DEVICE = {
-    'serialno': '6e4f187bf050415bb199b23fe00f950a',
-    'macaddress': '58307c8f96cf41c3bb4c66ff19684d76',
-    'authcode': '7Y3PX6SEAC',
+    'serialno': 'd4981b2a37be4825b3986ba21e05ba1b', #'6e4f187bf050415bb199b23fe00f950a',
+    'macaddress': 'dcecd778a5264a9caab792fd43645e22', #'58307c8f96cf41c3bb4c66ff19684d76',
+    'authcode': 'RDF5U3FZY8', #'7Y3PX6SEAC',
     'apikey': '', #base64.b64decode("OGRhZmFjMzY5Y2I0NDVmYjg5Mzk1NDI4ZTY0YWQ1NmU=")
     'apipwd': '', #base64.b64decode("OTBjODgzYjFjNDdhNGI5OWFhNWE4MmU2YjMyOTUxYTU=")
     'auth_url': 'https://api.gliptv.com/auth.aspx' #base64.b64decode('aHR0cHM6Ly9hcGkuZ2xpcHR2LmNvbS9hdXRoLmFzcHg=')
